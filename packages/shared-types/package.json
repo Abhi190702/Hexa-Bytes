@@ -1,0 +1,21 @@
+{
+  "name": "@platform/shared-types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Cross-language type contracts: API types generated from OpenAPI + hand-written domain constants",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "gen:types": "openapi-typescript ${API_OPENAPI_URL:-http://localhost:8000/api/v1/openapi.json} -o ./src/generated/api.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@platform/config": "workspace:*",
+    "openapi-typescript": "^7.5.0",
+    "typescript": "^5.7.2"
+  }
+}

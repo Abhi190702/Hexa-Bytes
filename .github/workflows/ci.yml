@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web (lint + typecheck + build)
+    runs-on: ubuntu-latest
+    # `next build` prerenders pages that import the validated public env, so the build
+    # needs a syntactically valid NEXT_PUBLIC_API_URL. CI never calls the API — this is a
+    # placeholder purely to satisfy env validation; the real URL is set in Vercel.
+    env:
+      NEXT_PUBLIC_API_URL: https://api.example.com
+    steps:
+      - uses: actions/checkout@v4
+      # No `version:` here on purpose — pnpm/action-setup@v4 reads it from the root
+      # package.json `packageManager` field (pnpm@9.15.4). Pinning both errors out.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run build
+
+  api:
+    name: API (ruff + mypy + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run mypy src
+      - run: uv run pytest

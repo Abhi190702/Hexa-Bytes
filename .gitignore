@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+
+# Environment
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Local caches. (The NCR admin boundary + OSM feature caches under apps/api/.cache are
+# force-added/tracked as static reference data the cloud/CI ingest needs deterministically —
+# Overpass blocks shared cloud IPs — so they stay committed despite this rule. Regenerate
+# the OSM caches with `python -m app.ingestion.build_osm_cache`.)
+.cache/
+
+# Coverage
+coverage/
+.coverage
+htmlcov/
+.vercel

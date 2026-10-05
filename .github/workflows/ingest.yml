@@ -1,0 +1,30 @@
+name: Ingest data
+
+# Runs the real-data ingestion on GitHub's runner (7 GB RAM) instead of the tiny Render
+# web instance (512 MB, which OOMs on the spatial indexing). Writes to the managed DB via
+# the DATABASE_URL secret. Manual trigger + periodic refresh.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *' # every 6 hours
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - name: Migrate + ingest
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          uv run alembic upgrade head
+          uv run python -m app.ingestion.run

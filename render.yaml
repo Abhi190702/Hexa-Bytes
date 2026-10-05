@@ -1,0 +1,55 @@
+# Render Blueprint — provisions the EvoComb API + Postgres in one click.
+# New + → "Blueprint" → connect this repo. (Web app is deployed separately on Vercel.)
+
+databases:
+  - name: evocomb-db
+    plan: free
+    databaseName: evocomb
+    user: evocomb
+
+services:
+  - type: web
+    name: evocomb-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: ./apps/api
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: API_ENV
+        value: production
+      - key: API_LOG_LEVEL
+        value: INFO
+      # Populate an empty DB and keep snapshots refreshed at least every six hours.
+      - key: INGEST_ON_STARTUP
+        value: 'true'
+      - key: INGEST_MAX_AGE_MINUTES
+        value: '360'
+      # Update this to your Vercel URL after the web app is deployed.
+      - key: API_CORS_ORIGINS
+        value: https://evocomb.vercel.app
+      # Guards POST /api/v1/admin/ingest (lets us load data without a shell).
+      # Render generates this secret; read it from the service's Environment tab.
+      - key: INGEST_TOKEN
+        generateValue: true
+      # DB connection is injected from the managed Postgres above.
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: evocomb-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: evocomb-db
+          property: port
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: evocomb-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: evocomb-db
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: evocomb-db
+          property: database
